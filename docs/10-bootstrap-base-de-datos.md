@@ -22,6 +22,7 @@ Objetivo de esta etapa: que con **un solo comando** quede creada y lista la base
 |---|---|
 | `npm run bootstrap` | **Todo de una vez** (ver abajo). Se puede repetir: salta lo que ya existe. |
 | `npm run env:pull` | Trae las variables de Vercel a `.env.local` |
+| `npm run env:push` | Sube las claves de producción de `.env` a Vercel (production y preview, como secretos). `-- --dry-run` para simular |
 | `npm run db:setup` | Migraciones pendientes + datos iniciales + estado |
 | `npm run db:migrate` | Solo migraciones pendientes |
 | `npm run db:seed` | Solo datos iniciales |

@@ -8,7 +8,10 @@
 | Equipo | `salsa7` |
 | Proyecto | `salsa-ux-chat` (Node 24.x) |
 | Producción | https://salsa-ux-chat.vercel.app (hoy corre la versión antigua, desplegada desde GitHub) |
-| Repo local | `~/Downloads/salsa-ux-chat` (v2, todavía no es repositorio Git) |
+| Repo local | `~/Downloads/salsa-ux-chat`, rama `v2-agente-ux` sobre `main` de `salsa-partners/salsa-ux-chat` |
+| Archivos | Blob store `salsa-ux-files` (público, conectado a los 3 entornos) |
+| Base | Neon `salsa-ux-db` (pendiente: aceptar términos de Neon) |
+| Claves de producción | `.env` local (no se sube a Git) → `npm run env:push` |
 
 ## Tres formas de manejar Vercel (instaladas el 24-oct-2026)
 
@@ -48,9 +51,9 @@ El MCP tiene los mismos permisos que tu usuario de Vercel. Mantén la confirmaci
 
 **Etapa 1 · Hoy: base inicializada.** Terminar `npm run bootstrap` (en la terminal: elegir el proyecto `salsa-ux-chat` existente, crear Neon, cargar secretos). Resultado: base con migraciones y datos iniciales, `.env.local` listo, `npm run doctor` en verde.
 
-**Etapa 2 · Dejar la máquina lista (requiere tu contraseña de Mac).**
-- Instalar **Node.js LTS** desde https://nodejs.org. Hoy se usa una copia temporal que desaparece al cerrar esta sesión, y **el plugin de Vercel necesita `node` para sus hooks**: sin Node instalado, cada sesión de Claude Code mostrará errores de hooks.
-- Instalar **GitHub Desktop** (trae Git).
+**Etapa 2 · Máquina lista (hecho el 24-oct-2026, sin permisos de administrador).**
+- Node.js v24.22.1 en `~/.local/node` y Vercel CLI global, en el PATH vía `~/.zprofile`.
+- GitHub Desktop en `~/Applications`; su `git` también queda en el PATH (`~/.zprofile`). Para subir cambios, inicia sesión en GitHub Desktop (la terminal no tiene credenciales de GitHub).
 
 **Etapa 3 · Un solo camino de despliegue.** Hoy producción sale de GitHub (`main`, versión antigua). Si desplegaras con `npm run deploy:prod` desde la carpeta, el siguiente push a `main` volvería a poner la versión antigua. Por eso:
 1. Subir la v2 a GitHub en una rama (`v2-agente-ux`) → Vercel crea un preview automático.
