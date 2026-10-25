@@ -7,9 +7,9 @@
 | Cuenta | `winnywts-3328` |
 | Equipo | `salsa7` |
 | Proyecto | `salsa-ux-chat` (Node 24.x) |
-| Producción | https://salsa-ux-chat.vercel.app: **v2** desde el 24-oct-2026 (deploy desde la carpeta con `npm run deploy:prod`; `main` en GitHub todavía tiene v1) |
+| Producción | https://salsa-ux-chat.vercel.app (versión completa desde el 24-oct-2026; se publica con cada push a `main`) |
 | Acceso | Solo con `ACCESS_CODE` (nombre y correo opcionales; la identidad es el navegador). `/admin` con `ADMIN_CODE`. Ambos en tu `.env` |
-| Repo local | `~/Downloads/salsa-ux-chat`, rama `v2-agente-ux` sobre `main` de `salsa-partners/salsa-ux-chat` |
+| Repo local | `~/Downloads/salsa-ux-chat`, rama `main` de `salsa-partners/salsa-ux-chat` (`gh` y `git` en la terminal) |
 | Archivos | Blob store `salsa-ux-files` (público, conectado a los 3 entornos) |
 | Base | Neon `salsa-ux-db` (plan Free, us-east-1, Postgres 18), conectada a production, preview y development; migraciones 0001–0002 aplicadas |
 | Navegador | Browserbase Free (máx. 3 a la vez, sesiones de 300 s), contexto `salsa-ux-chat` en `BROWSERBASE_CONTEXT_ID` |
@@ -59,11 +59,7 @@ El MCP tiene los mismos permisos que tu usuario de Vercel. Mantén la confirmaci
 - Node.js v24.22.1 en `~/.local/node` y Vercel CLI global, en el PATH vía `~/.zprofile`.
 - GitHub Desktop en `~/Applications`; su `git` también queda en el PATH (`~/.zprofile`). Para subir cambios, inicia sesión en GitHub Desktop (la terminal no tiene credenciales de GitHub).
 
-**Etapa 3 · Un solo camino de despliegue.** Hoy producción sale de GitHub (`main`, versión antigua). Si desplegaras con `npm run deploy:prod` desde la carpeta, el siguiente push a `main` volvería a poner la versión antigua. Por eso:
-1. Subir la v2 a GitHub en una rama (`v2-agente-ux`) → Vercel crea un preview automático.
-2. Probar el preview con la lista de [06](06-despliegue-vercel.md).
-3. Hacer merge a `main` → producción.
-4. Desde ahí, **todo cambio entra por GitHub**; `deploy:preview` queda solo para pruebas rápidas.
+**Etapa 3 · Un solo camino de despliegue (hecho).** Todo cambio entra por `main` en GitHub: cada push publica producción. Para probar algo sin publicarlo, usa una rama aparte (Vercel crea un preview) o `npm run deploy:preview`.
 
 **Etapa 4 · Entornos separados (cuando haya datos de clientes).** En Neon, activar una rama de base por cada preview, para que las pruebas no toquen los datos de producción.
 
