@@ -28,6 +28,7 @@ Objetivo de esta etapa: que con **un solo comando** quede creada y lista la base
 | `npm run db:seed` | Solo datos iniciales |
 | `npm run db:status` | Versión de Postgres, migraciones aplicadas/pendientes, filas por tabla |
 | `npm run doctor` | Diagnóstico completo |
+| `node scripts/doctor.mjs --env .env.local --env .env` | Diagnóstico combinando la base (`.env.local`) con tus claves de producción (`.env`) |
 | `npm run dev` | App en local con las variables de `.env.local` |
 | `npm run deploy:preview` / `deploy:prod` | Despliega desde la carpeta (no necesita Git) |
 

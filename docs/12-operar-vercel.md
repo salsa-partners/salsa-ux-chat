@@ -10,10 +10,10 @@
 | Producción | https://salsa-ux-chat.vercel.app (hoy corre la versión antigua, desplegada desde GitHub) |
 | Repo local | `~/Downloads/salsa-ux-chat`, rama `v2-agente-ux` sobre `main` de `salsa-partners/salsa-ux-chat` |
 | Archivos | Blob store `salsa-ux-files` (público, conectado a los 3 entornos) |
-| Base | Neon `salsa-ux-db` (pendiente: aceptar términos de Neon) |
+| Base | Neon `salsa-ux-db` (plan Free, us-east-1, Postgres 18), conectada a production, preview y development; migraciones 0001–0002 aplicadas |
 | Navegador | Browserbase Free (máx. 3 a la vez, sesiones de 300 s), contexto `salsa-ux-chat` en `BROWSERBASE_CONTEXT_ID` |
 | Gasto | Topes en Vercel (`BUDGET_*`, `BROWSER_MINUTES_MONTHLY`); `npm run usage` para ver el mes |
-| Preview | https://salsa-ux-chat-3fq5i73kl-salsa7.vercel.app (protegido con login de Vercel) |
+| Preview | https://salsa-ux-chat-p2jdvisia-salsa7.vercel.app (protegido con login de Vercel; ya conectado a Neon) |
 | Claves de producción | `.env` local (no se sube a Git) → `npm run env:push` |
 
 ## Tres formas de manejar Vercel (instaladas el 24-oct-2026)
