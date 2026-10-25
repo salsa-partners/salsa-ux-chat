@@ -7,7 +7,8 @@
 | Cuenta | `winnywts-3328` |
 | Equipo | `salsa7` |
 | Proyecto | `salsa-ux-chat` (Node 24.x) |
-| Producción | https://salsa-ux-chat.vercel.app (hoy corre la versión antigua, desplegada desde GitHub) |
+| Producción | https://salsa-ux-chat.vercel.app: **v2** desde el 24-oct-2026 (deploy desde la carpeta con `npm run deploy:prod`; `main` en GitHub todavía tiene v1) |
+| Acceso | Solo con `ACCESS_CODE` (nombre y correo opcionales; la identidad es el navegador). `/admin` con `ADMIN_CODE`. Ambos en tu `.env` |
 | Repo local | `~/Downloads/salsa-ux-chat`, rama `v2-agente-ux` sobre `main` de `salsa-partners/salsa-ux-chat` |
 | Archivos | Blob store `salsa-ux-files` (público, conectado a los 3 entornos) |
 | Base | Neon `salsa-ux-db` (plan Free, us-east-1, Postgres 18), conectada a production, preview y development; migraciones 0001–0002 aplicadas |
