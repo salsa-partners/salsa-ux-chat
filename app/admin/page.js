@@ -65,7 +65,8 @@ export default function Admin() {
               <li>Base de datos (DATABASE_URL, Neon): <Ok v={st.db} /> · archivos (BLOB_READ_WRITE_TOKEN): <Ok v={st.blob} /></li>
               <li>Navegador (BROWSERBASE_API_KEY): <Ok v={st.apiKey} /> · contexto (BROWSERBASE_CONTEXT_ID): <Ok v={st.contextId} /></li>
             </ul>
-            {st.usage && <p className="note">Últimos 30 días: {fmt(st.usage.ejecuciones)} respuestas ({fmt(st.usage.en_vivo)} en vivo, {fmt(st.usage.errores)} con error) · {fmt(st.usage.input_tokens)} tokens de entrada ({fmt(st.usage.cache_read_tokens)} desde caché) · {fmt(st.usage.output_tokens)} de salida · {st.usage.segundos_promedio ?? "–"} s promedio.</p>}
+            {st.spend && st.budgets && <p><b>Este mes:</b> US${st.spend.monthUsd.toFixed(2)} de US${st.budgets.monthlyUsd} · navegador {st.spend.browserMinutes.toFixed(1)} de {st.budgets.browserMinutesMonthly} min · tope por persona US${st.budgets.dailyUsdPerUser}/día · por respuesta US${st.budgets.runUsd}</p>}
+            {st.usage && <p className="note">Últimos 30 días: {fmt(st.usage.ejecuciones)} respuestas ({fmt(st.usage.en_vivo)} en vivo, {fmt(st.usage.errores)} con error) · {fmt(st.usage.input_tokens)} tokens de entrada ({fmt(st.usage.cache_read_tokens)} desde caché) · {fmt(st.usage.output_tokens)} de salida · {st.usage.segundos_promedio ?? "–"} s promedio. Costo: US${st.usage.costo_usd ?? 0} · {st.usage.busquedas_web ?? 0} búsquedas web · {st.usage.minutos_navegador ?? 0} min de navegador.</p>}
             {st.db && <Btn k="init_db" ghost onClick={initDb}>Preparar / actualizar base de datos</Btn>}
             {!st.db && <p className="note">Sin base de datos el chat funciona, pero no guarda historial, hallazgos ni memoria. Conecta Neon desde Vercel → Storage y haz Redeploy.</p>}
           </section>

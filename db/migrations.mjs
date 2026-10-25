@@ -160,4 +160,21 @@ export const MIGRATIONS = [
       )`,
     ],
   },
+  {
+    id: "0002",
+    name: "costos: costo en US$, minutos de navegador y búsquedas web por ejecución",
+    statements: [
+      `ALTER TABLE runs ADD COLUMN IF NOT EXISTS cost_usd numeric NOT NULL DEFAULT 0`,
+      `ALTER TABLE runs ADD COLUMN IF NOT EXISTS browser_seconds int NOT NULL DEFAULT 0`,
+      `ALTER TABLE runs ADD COLUMN IF NOT EXISTS web_searches int NOT NULL DEFAULT 0`,
+      `CREATE INDEX IF NOT EXISTS runs_created_idx ON runs(created_at)`,
+      // Resumen por mes y tipo (chat, live, eval): lo lee /admin y `npm run usage`.
+      `CREATE OR REPLACE VIEW usage_monthly AS
+        SELECT date_trunc('month', created_at)::date AS mes, kind, model, count(*)::int AS ejecuciones,
+          sum(input_tokens)::bigint AS input_tokens, sum(output_tokens)::bigint AS output_tokens,
+          sum(cache_read_tokens)::bigint AS cache_read_tokens, sum(web_searches)::int AS busquedas_web,
+          round(sum(browser_seconds) / 60.0, 1) AS minutos_navegador, round(sum(cost_usd), 4) AS costo_usd
+        FROM runs GROUP BY 1, 2, 3`,
+    ],
+  },
 ];

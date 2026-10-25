@@ -9,6 +9,7 @@ import {
   upsertUser, getProject, listPlatforms, createConversation, getConversation, conversationMessages,
   addMessage, startRun, finishRun, countRuns,
 } from "@/lib/store";
+import { checkBudget, checkBrowserBudget, costUsd, budgets, recordInMemory } from "@/lib/usage";
 
 export const runtime = "nodejs";
 // En Vercel Pro con Fluid compute se puede subir a 800 (y ajustar SOFT_MS/HARD_MS). Hobby: máximo 300.
@@ -93,6 +94,9 @@ export async function POST(req) {
   if (recent != null ? recent >= CHATS_PER_10_MIN : limitedByIp(ip, CHATS_PER_10_MIN, 10)) {
     return new Response("Muchos mensajes seguidos. Espera unos minutos.", { status: 429 });
   }
+  // Topes de gasto (lib/usage.js): mes completo y por persona por día.
+  const over = await checkBudget(user?.id);
+  if (over) return new Response(over.message, { status: over.status });
 
   const body = await req.json().catch(() => null);
   const userText = String(body?.message?.text || "").slice(0, 8000).trim();
@@ -138,7 +142,9 @@ export async function POST(req) {
       let closed = false;
       const emit = (ev) => { if (closed) return; try { controller.enqueue(encoder.encode(JSON.stringify(ev) + "\n")); } catch { closed = true; } };
       const started = Date.now();
-      const usage = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 };
+      const usage = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, webSearches: 0 };
+      const RUN_CAP = budgets().runUsd;
+      let browserStarted = 0;
       const steps = [];
       let answer = "", status = "ok", error = null, bbSession = null, conn = null;
       const say = (d) => { answer += d; emit({ t: "text", d }); };
@@ -150,8 +156,10 @@ export async function POST(req) {
       async function openPage() {
         const n = user ? await countRuns(user.id, 60, "live").catch(() => null) : null;
         if (n != null ? n >= LIVE_PER_HOUR : limitedByIp("live:" + ip, LIVE_PER_HOUR, 60)) throw new Error("Se alcanzó el límite de revisiones en vivo por hora. Intenta más tarde.");
+        await checkBrowserBudget();
         emitStatus({ t: "status", d: "Abriendo el navegador con la sesión guardada…" });
-        bbSession = await createSession({ timeoutSec: 330 });
+        bbSession = await createSession({ timeoutSec: 300 });
+        browserStarted = Date.now();
         conn = await connect(bbSession.connectUrl);
         return conn.page;
       }
@@ -198,6 +206,7 @@ export async function POST(req) {
           const u = final.usage || {};
           usage.input += u.input_tokens || 0; usage.output += u.output_tokens || 0;
           usage.cacheRead += u.cache_read_input_tokens || 0; usage.cacheWrite += u.cache_creation_input_tokens || 0;
+          usage.webSearches += u.server_tool_use?.web_search_requests || 0;
 
           // Historial solo crece (append-only): nunca se editan turnos anteriores.
           history.push({ role: "assistant", content: final.content });
@@ -205,6 +214,8 @@ export async function POST(req) {
           if (final.stop_reason === "refusal") { say("\n\nNo puedo ayudar con este pedido. Reformúlalo o pregunta por otro aspecto de la experiencia."); status = "refusal"; break; }
           if (final.stop_reason === "max_tokens") { say("\n\n[La respuesta fue demasiado larga y se cortó. Pide menos pantallas por consulta.]"); status = "max_tokens"; break; }
           if (final.stop_reason !== "tool_use") break;
+          // Tope por respuesta: si esta respuesta ya gastó demasiado, se corta con lo que hay.
+          if (costUsd(MODEL, usage) > RUN_CAP) { say(`\n\n[Corté aquí para no pasar el tope de US$${RUN_CAP} por respuesta. Pídeme lo que falta en otro mensaje.]`); status = "budget"; break; }
 
           const results = [];
           for (const b of final.content) {
@@ -229,7 +240,10 @@ export async function POST(req) {
         if (bbSession) await releaseSession(bbSession.id);
         const files = box.file ? [{ name: box.file.name, url: box.file.url || null }] : [];
         await addMessage(conversation?.id, "assistant", answer || "(sin respuesta)", { steps, files }).catch(() => {});
-        await finishRun(runId, { kind: box.usedBrowser ? "live" : "chat", status, usage, toolCalls: box.calls, durationMs: Date.now() - started, error }).catch(() => {});
+        const browserSeconds = browserStarted ? Math.round((Date.now() - browserStarted) / 1000) : 0;
+        const cost = costUsd(MODEL, usage);
+        recordInMemory(user?.id || "anon", cost, browserSeconds);
+        await finishRun(runId, { kind: box.usedBrowser ? "live" : "chat", status, usage, toolCalls: box.calls, durationMs: Date.now() - started, error, cost, browserSeconds }).catch(() => {});
         closed = true;
         try { controller.close(); } catch {}
       }

@@ -27,6 +27,21 @@ SELECT round(sum(cache_read_tokens)::numeric / nullif(sum(input_tokens + cache_r
 FROM runs WHERE created_at > now() - interval '7 days';
 ```
 
+## Control central de gasto
+
+Todo lo que cuesta dinero pasa por un solo lugar: `db/pricing.mjs` (precios y topes) + `lib/usage.js` (verificación antes de gastar). Cada respuesta, revisión en vivo y corrida de evals guarda su costo en `runs.cost_usd`, sus minutos de navegador en `runs.browser_seconds` y sus búsquedas web en `runs.web_searches`. La vista `usage_monthly` los resume por mes.
+
+| Tope | Variable | Por defecto | Qué pasa al llegar |
+|---|---|---|---|
+| Gasto del mes (modelo + búsquedas) | `BUDGET_MONTHLY_USD` | US$20 | El chat y las evals se detienen con un aviso |
+| Por persona por día | `BUDGET_DAILY_USD_PER_USER` | US$3 | Esa persona no puede seguir hasta mañana |
+| Por respuesta | `BUDGET_RUN_USD` | US$1,5 | La respuesta se corta con lo que tenga |
+| Minutos de navegador del mes | `BROWSER_MINUTES_MONTHLY` | 60 | El agente responde sin abrir el navegador |
+
+Dónde verlo: `npm run usage` (incluye el dato oficial de Browserbase) y `/admin` → Estado.
+
+Topes duros del proveedor (recomendado, como segunda barrera): límite mensual en console.anthropic.com → Settings → Limits. Browserbase Free, Neon Free y Vercel Hobby no cobran excedentes: al llegar al límite del plan se detienen.
+
 ## Costos estimados
 
 Precios de Anthropic para `claude-sonnet-5-5`: US$2 por millón de tokens de entrada, US$10 de salida, US$0,20 las lecturas de caché. Son **estimaciones de orden de magnitud**; medir con la tabla `runs` las primeras semanas.

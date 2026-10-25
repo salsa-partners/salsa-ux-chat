@@ -15,6 +15,13 @@ const fi = args.indexOf("--file");
 const file = fi > -1 ? args[fi + 1] : ".env";
 const TARGETS = ["production", "preview"];
 const MANAGED = /^(DATABASE_URL.*|POSTGRES_.*|PG.*|NEON_.*|BLOB_.*|VERCEL_.*)$/;
+// Formato mínimo: evita subir un placeholder que reemplace una clave real en Vercel.
+const VALID = {
+  ANTHROPIC_API_KEY: (v) => v.startsWith("sk-ant-"),
+  OPENAI_API_KEY: (v) => v.startsWith("sk-"),
+  BROWSERBASE_API_KEY: (v) => v.startsWith("bb_"),
+  SESSION_SECRET: (v) => v.length >= 32,
+};
 
 const vercelBin = new URL("../node_modules/.bin/vercel", import.meta.url).pathname;
 const vercel = (a, input) => execFileSync(vercelBin, a, { input, encoding: "utf8", stdio: [input == null ? "ignore" : "pipe", "pipe", "pipe"] });
@@ -31,7 +38,7 @@ for (const t of TARGETS) {
   }
 }
 
-if (!vars.SESSION_SECRET && !TARGETS.every((t) => remote.has(`${t}:SESSION_SECRET`))) {
+if ((!vars.SESSION_SECRET || !VALID.SESSION_SECRET(vars.SESSION_SECRET)) && !TARGETS.every((t) => remote.has(`${t}:SESSION_SECRET`))) {
   vars.SESSION_SECRET = randomBytes(48).toString("base64url");
   console.log("· SESSION_SECRET vacía: se generó una al azar.");
 }
@@ -40,6 +47,7 @@ let pushed = 0, skipped = [];
 for (const [name, value] of Object.entries(vars)) {
   if (MANAGED.test(name)) { skipped.push(`${name} (la maneja Vercel)`); continue; }
   if (!value) { skipped.push(`${name} (vacía)`); continue; }
+  if (VALID[name] && !VALID[name](value)) { skipped.push(`${name} (no parece válida: no se sube)`); continue; }
   for (const t of TARGETS) {
     const exists = remote.has(`${t}:${name}`);
     if (dry) { console.log(`  ${exists ? "actualizaría" : "agregaría"} ${name} en ${t}`); continue; }

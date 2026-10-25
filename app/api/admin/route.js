@@ -3,6 +3,7 @@ import { bb, createSession, releaseSession, connectById, checkSessions } from "@
 import { dbConfigured, blobConfigured } from "@/lib/db";
 import { initDb, listAllPlatforms, addPlatform, setPlatformActive, listProjects, createProject, getProject, usageSummary } from "@/lib/store";
 import { runEvals, evalHistory } from "@/lib/evals";
+import { spendStatus, budgets, checkBudget } from "@/lib/usage";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -32,6 +33,7 @@ export async function POST(req) {
           model: process.env.ANTHROPIC_MODEL || "claude-sonnet-5-5", web: process.env.WEB_TOOLS !== "off",
           platforms: await listAllPlatforms().catch(() => []), projects: await listProjects().catch(() => []),
           usage: await usageSummary().catch(() => null), evals: await evalHistory().catch(() => []),
+          spend: await spendStatus(null).catch(() => null), budgets: budgets(),
         });
 
       // ---------- Base de datos ----------
@@ -59,8 +61,7 @@ export async function POST(req) {
       // ---------- Sesiones del navegador (Browserbase) ----------
       case "crear_contexto": {
         if (!apiKey) return json({ error: "Falta BROWSERBASE_API_KEY en Vercel." }, 400);
-        const p = process.env.BROWSERBASE_PROJECT_ID ? { projectId: process.env.BROWSERBASE_PROJECT_ID } : {};
-        const c = await bb().contexts.create({ name: "salsa-ux-chat", ...p });
+        const c = await bb().contexts.create({ name: "salsa-ux-chat" });
         return json({ id: c.id });
       }
       case "iniciar": {
@@ -89,6 +90,8 @@ export async function POST(req) {
       // ---------- Calidad ----------
       case "evals": {
         if (!process.env.ANTHROPIC_API_KEY) return json({ error: "Falta ANTHROPIC_API_KEY." }, 400);
+        const over = await checkBudget(null);
+        if (over) return json({ error: over.message }, over.status);
         const project = await getProject(body.proyecto || null);
         return json(await runEvals(project));
       }

@@ -1,0 +1,7 @@
+# Nunca subir secretos ni artefactos locales en un deploy desde la carpeta
+.env
+.env.*
+!.env.example
+node_modules
+.next
+.DS_Store

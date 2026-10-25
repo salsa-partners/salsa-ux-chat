@@ -17,7 +17,9 @@ const warn = (m) => console.log(`  · ${m}`);
 console.log(`Variables${envFile ? ` (${envFile})` : " (entorno)"}`);
 for (const k of ["ANTHROPIC_API_KEY", "SESSION_SECRET", "ACCESS_CODE", "ADMIN_CODE", "DATABASE_URL"]) e[k] ? ok(k) : bad(`${k} falta (obligatoria)`);
 (e.BLOB_STORE_ID || e.BLOB_READ_WRITE_TOKEN) ? ok("Blob (BLOB_STORE_ID o BLOB_READ_WRITE_TOKEN)") : bad("Blob falta: capturas y Excel no se guardarán");
-for (const k of ["BROWSERBASE_API_KEY", "BROWSERBASE_CONTEXT_ID"]) e[k] ? ok(k) : warn(`${k} falta (opcional: sin ella no hay revisión en vivo)`);
+e.BROWSERBASE_API_KEY ? ok("BROWSERBASE_API_KEY") : warn("BROWSERBASE_API_KEY falta (opcional: sin ella no hay revisión en vivo)");
+e.BROWSERBASE_CONTEXT_ID ? ok("BROWSERBASE_CONTEXT_ID") : warn("BROWSERBASE_CONTEXT_ID falta (opcional: solo para plataformas con login)");
+if (e.ANTHROPIC_API_KEY && !e.ANTHROPIC_API_KEY.startsWith("sk-ant-")) bad("ANTHROPIC_API_KEY no parece una clave real (debe empezar con sk-ant-)");
 if (e.SESSION_SECRET && e.SESSION_SECRET.length < 32) bad("SESSION_SECRET es corta: usa 32+ caracteres");
 
 console.log("\nBase de datos (Neon)");
@@ -38,6 +40,17 @@ if (e.ANTHROPIC_API_KEY) {
     const m = await new Anthropic({ apiKey: e.ANTHROPIC_API_KEY }).models.retrieve(model);
     ok(`Clave válida y acceso a ${m.id}`);
   } catch (err) { bad(`No pude usar ${model}: ${err.status || ""} ${err.message}`); }
+}
+
+console.log("\nBrowserbase");
+if (e.BROWSERBASE_API_KEY) {
+  try {
+    const { default: Browserbase } = await import("@browserbasehq/sdk");
+    const bbc = new Browserbase({ apiKey: e.BROWSERBASE_API_KEY });
+    const [p] = await bbc.projects.list();
+    const u = await bbc.projects.usage(p.id);
+    ok(`Clave válida · ${u.browserMinutes} min usados · máx. ${p.concurrency} navegadores · sesiones de ${p.defaultTimeout} s`);
+  } catch (err) { bad(`No pude usar Browserbase: ${err.message}`); }
 }
 
 console.log("\nVercel Blob");

@@ -16,7 +16,8 @@
     "vercel-build": "node scripts/db.mjs migrate --if-configured && next build",
     "deploy:preview": "vercel deploy",
     "deploy:prod": "vercel deploy --prod",
-    "env:push": "node scripts/env-push.mjs"
+    "env:push": "node scripts/env-push.mjs",
+    "usage": "node scripts/usage.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "0.132.1",
