@@ -89,7 +89,7 @@ export default function Home() {
   const [busy, setBusy] = useState(false);
   const [side, setSide] = useState(false);
   const [gate, setGate] = useState({ checked: false, required: false, codeRequired: false, ok: true, user: null });
-  const [form, setForm] = useState({ code: "", name: "", email: "" });
+  const [form, setForm] = useState({ code: "" });
   const [gateErr, setGateErr] = useState("");
   const [ws, setWs] = useState({ server: false, projects: [], platforms: [] });
   const [project, setProject] = useState("");
@@ -241,10 +241,8 @@ export default function Home() {
           <form onSubmit={enter}>
             <div className="s" aria-hidden="true">S</div>
             <h2>Agente UX</h2>
-            <p>Entra con tu correo de trabajo para guardar tu historial.</p>
-            <input autoFocus value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Tu nombre" aria-label="Tu nombre" />
-            <input type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="Correo de trabajo" aria-label="Correo de trabajo" />
-            {gate.codeRequired && <input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} placeholder="Código de acceso" aria-label="Código de acceso" />}
+            <p>{gate.codeRequired ? "Escribe el código de acceso que te compartió Salsa." : "Entra para guardar tu historial en este navegador."}</p>
+            {gate.codeRequired && <input autoFocus value={form.code} onChange={(e) => setForm({ code: e.target.value })} placeholder="Código de acceso" aria-label="Código de acceso" />}
             {gateErr && <div className="err">{gateErr}</div>}
             <button type="submit">Entrar</button>
           </form>
@@ -271,7 +269,7 @@ export default function Home() {
           ))}
         </div>
         <div className="foot who">
-          <span>{ws.server ? (gate.user?.name || gate.user?.email || "Tus chats se guardan en tu cuenta.") : "Tus chats se guardan solo en este navegador."}</span>
+          <span>{ws.server ? (gate.user?.name || (gate.user?.email && !gate.user.email.startsWith("navegador-") ? gate.user.email : "Tus chats se guardan en este navegador.")) : "Tus chats se guardan solo en este navegador."}</span>
           {gate.user && <button onClick={logout}>Salir</button>}
         </div>
       </aside>

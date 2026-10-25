@@ -130,7 +130,7 @@ export async function POST(req) {
   const system = [
     { type: "text", text: BASE_PROMPT + (browser ? AGENT_PROMPT : "\n\nNo tienes navegador en esta instalación: trabaja con hallazgos guardados, investigación web y capturas adjuntas."), cache_control: { type: "ephemeral" } },
     { type: "text", text: `CONTEXTO DEL PROYECTO: ${project.name}${project.client ? ` · cliente: ${project.client}` : ""}${project.sector ? ` · sector: ${project.sector}` : ""}\n${project.brief || "(sin resultados previos cargados)"}`, cache_control: { type: "ephemeral" } },
-    { type: "text", text: `${platformsBlock(platforms)}\n\nMEMORIA (archivos disponibles):\n${await memoryIndex()}\n\nPERSONA: ${session?.name || "sin nombre"}${session?.email ? ` <${session.email}> (sus preferencias van en /memories/personas/${session.email}/)` : ""}\nPROYECTO ACTUAL: ${project.slug} (memoria en /memories/proyectos/${project.slug}/)\nFECHA DE HOY: ${today}` },
+    { type: "text", text: `${platformsBlock(platforms)}\n\nMEMORIA (archivos disponibles):\n${await memoryIndex()}\n\nPERSONA: ${session?.name || "sin nombre"}${session?.email && !session.email.startsWith("navegador-") ? ` <${session.email}> (sus preferencias van en /memories/personas/${session.email}/)` : " (sin identificar: guarda preferencias en /memories/equipo/)"}\nPROYECTO ACTUAL: ${project.slug} (memoria en /memories/proyectos/${project.slug}/)\nFECHA DE HOY: ${today}` },
   ];
 
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
